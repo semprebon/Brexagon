@@ -1,12 +1,13 @@
-/*4
-Basic computations and shapes for working with hexes
+/*
+    Basic computations and shapes for working with hexes
 
-see https://www.redblobgames.com/grids/hexagons/ for detailed description
+    see https://www.redblobgames.com/grids/hexagons/ for detailed description
 
-Hexes are oriented with points along the y axis, and usually referenced by
-axial coordinates (row is normal, col is tilted by 60 degrees from vertical.
-See shape positions functions for more detail.
+    Hexes are oriented with points along the y axis, and usually referenced by
+    axial coordinates (row is normal, col is tilted by 60 degrees from vertical.
+    See shape positions functions for more detail.
 */
+
 /*
 The hex size is used as the default size for hexes throughout the code. It is
 the minimal diameter - i.e., distance between opposite sides.
@@ -21,7 +22,7 @@ Q_BASIS = [0,1]; // horizontal unit vector
 R_BASIS = [1,1]; // diagonal unit vector
 
 function default(value, default) = (value == undef) ? default : value;
-function range(count) = (count[0] == undef) ? [0:(count-1)] : [0:(len(count)-1)];
+function range(count) = is_num(count) ? [0:(count-1)] : [0:(len(count)-1)];
 function is_odd(x) = (x % 2) != 0;
 
 /*

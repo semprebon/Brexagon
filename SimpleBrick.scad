@@ -3,7 +3,7 @@ include <Association.scad>
 
 TOLERANCE = 0.2;
 SEPARATION = 0.2;
-BRICK_HEIGHT = 6; // nominal height of brick (excluding tenon if present)
+TILE_HEIGHT = 6; // nominal height of brick (excluding tenon if present)
 TOP_THICKNESS = 2;
 WALL_THICKNESS = 1.68;
 BASE_HEIGHT = 1.6;
@@ -21,7 +21,7 @@ function hex_data(position, descriptor) = [position, descriptor[0], descriptor[1
 
 function hex_height(hex_data) = level_thickness * hex_data[HEX_LEVEL];
 
-function 2d_to_3d(p, z=0) = concat(p, [z]);
+//function 2d_to_3d(p, z=0) = concat(p, [z]);
 
 /* Offsets ino tile object */
 TILE_SHAPE = 0; // "hex", "semi_hex", or "rect
@@ -49,24 +49,24 @@ function create_tile(shape, size, data) =
     [shape, size,  hexes];
 
 
-module hex_prism(size, height) {
-    rotate([0,0,360/12]) linear_extrude(height=height) hex_shape(size);
+module hexagon_prism(size, height) {
+    linear_extrude(height=height) hex_shape(size);
 }
 
-module beveled_hex_prism(size, height, bevel=WALL_THICKNESS/3) {
+module beveled_hexagon_prism(size, height, bevel=WALL_THICKNESS/3) {
     hull() {
-        hex_prism(size=size-2*bevel, height=height);
-        translate([0,0,bevel]) hex_prism(size=size, height=height-bevel);
+        hexagon_prism(size=size-2*bevel, height=height);
+        translate([0,0,bevel]) hexagon_prism(size=size, height=height-bevel);
     }
 }
 
-module unit_brick(size=DEFAULT_HEX_SIZE) {
+module simple_hex(size=DEFAULT_HEX_SIZE) {
     brick_size = size - SEPARATION;
     mortise_size = brick_size - 2 * WALL_THICKNESS;
     echo(size=size, brick_size=brick_size, mortise_size=mortise_size);
     difference() {
-        beveled_hex_prism(size=size, height=BRICK_HEIGHT);
-        hex_prism(size=mortise_size, height=BRICK_HEIGHT-TOP_THICKNESS);
+        beveled_hexagon_prism(size=size, height=TILE_HEIGHT);
+        hexagon_prism(size=mortise_size, height=TILE_HEIGHT-TOP_THICKNESS);
 
     }
 }
@@ -87,8 +87,8 @@ module simple_tenon(size=DEFAULT_HEX_SIZE, bevel=WALL_THICKNESS/4) {
 /*
  Generates a base for bricks
  */
-module tile_base(size) {
-    tile = create_tile(shape=TILE_SHAPE_HEXAGON, size=size, data=[]);
+module tile_base(shape=TILE_SHAPE_HEXAGON, size=1) {
+    tile = create_tile(shape=shape, size=size, data=[]);
     hexes = tile[TILE_HEXES];
 
     linear_extrude(height=BASE_HEIGHT) {
@@ -100,7 +100,7 @@ module tile_base(size) {
     }
     //translate([0,0,BASE_HEIGHT]) {
         for (i = range(hexes)) {
-            translate(axial_to_xy(hexes[i][HEX_POSITION], DEFAULT_HEX_SIZE)7) simple_tenon(DEFAULT_HEX_SIZE);
+            translate(axial_to_xy(hexes[i][HEX_POSITION], DEFAULT_HEX_SIZE)) simple_tenon(DEFAULT_HEX_SIZE);
         }
     //}
 }
@@ -112,73 +112,81 @@ module best_fit_tile_base(size) {
     }
 }
 
-DX = 1/sqrt(12);
-DY = 0.5;
-HWT = DX/4;
-WALL_TYPES = associate([
-    "N", associate(["size", [1,HWT],        "location", [0,DY-HWT/2]]),
-    "S", associate(["size", [1,HWT],        "location", [0,-DY+HWT/2]]),
-    "E", associate(["size", [DX,2*HWT],     "location", [ 1/2*DX,0]]),
-    "W", associate(["size", [DX,2*HWT],     "location", [-1/2*DX,0]]),
-    "E2", associate(["size",[2*HWT,2*HWT],  "location", [ 5*DX/4,0]]),
-    "W2", associate(["size",[2*HWT,2*HWT],  "location", [-5*DX/4,0]]),
-    "E3", associate(["size",[2*HWT,2*HWT],  "location", [ 7*DX/4,0]]),
-    "W3", associate(["size",[2*HWT,2*HWT],  "location", [-7*DX/4,0]]),
-    "NE", associate(["size",[2*HWT,DY],     "location", [ 7/4*DX, DY/2]]),
-    "SE", associate(["size",[2*HWT,DY],     "location", [ 7/4*DX,-DY/2]]),
-    "SW", associate(["size",[2*HWT,DY],     "location", [-7/4*DX,-DY/2]]),
-    "NW", associate(["size",[2*HWT,DY],     "location", [-7/4*DX, DY/2]]),
-    "NE2", associate(["size",[2*HWT,DY],    "location", [ 5/4*DX, DY/2]]),
-    "SE2", associate(["size",[2*HWT,DY],    "location", [ 5/4*DX,-DY/2]]),
-    "SW2", associate(["size",[2*HWT,DY],    "location", [-5/4*DX,-DY/2]]),
-    "NW2", associate(["size",[2*HWT,DY],    "location", [-5/4*DX, DY/2]]) ]);
+HEIGHT = (2 / sqrt(3));
+DX = 0.5;
+DY = 1/sqrt(12);
+BW = DY/2;
+BARRIER_PLACEMENTS = associate([
+    "E", associate(["size", [BW/2,1], "location", [DX-BW/4,0]]),
+    "W", associate(["size", [BW/2,1], "location", [-DX+BW/4,0]]),
+    "N", associate(["size", [BW,DY],  "location", [0, 1/2*DY]]),
+    "S", associate(["size", [BW,DY],  "location", [0,-1/2*DY]]),
+    "N2", associate(["size",[BW,BW],  "location", [0, 7*DY/4]]),
+    "S2", associate(["size",[BW,BW],  "location", [0,-7*DY/4]]),
+    "N3", associate(["size",[BW,BW],  "location", [0, 5*DY/4]]),
+    "S3", associate(["size",[BW,BW],  "location", [0,-5*DY/4]]),
+    "NE", associate(["size",[DX,BW],  "location", [ DX/2, 7/4*DY]]),
+    "SE", associate(["size",[DX,BW],  "location", [-DX/2, 7/4*DY]]),
+    "SW", associate(["size",[DX,BW],  "location", [-DX/2,-7/4*DY]]),
+    "NW", associate(["size",[DX,BW],  "location", [ DX/2,-7/4*DY]]),
+    "NE2", associate(["size",[DX,BW], "location", [ DX/2, 5/4*DY]]),
+    "SE2", associate(["size",[DX,BW], "location", [-DX/2, 5/4*DY]]),
+    "SW2", associate(["size",[DX,BW], "location", [-DX/2,-5/4*DY]]),
+    "NW2", associate(["size",[DX,BW], "location", [ DX/2,-5/4*DY]]) ]);
 
-function has_wall(list, wall) = [ for (w = list) if (w == wall) true][0];
-function wall_size(size, wall) = concat(size*WALL_TYPES(wall)("size"), [WALL_HEIGHT]);
-function wall_position(size, wall) = concat(size*WALL_TYPES(wall)("location"), [WALL_HEIGHT/2]);
+function has_barrier(list, barrier) = [ for (w = list) if (w == barrier) true][0];
+function barrier_size(size, barrier) = concat(size*BARRIER_PLACEMENTS(barrier)("size"), [WALL_HEIGHT]);
+function barrier_position(size, barrier) = concat(size*BARRIER_PLACEMENTS(barrier)("location"), [WALL_HEIGHT/2]);
 
-// each unit can have 8 different walls togged on
-module hex_brick(size, walls) {
-    unit_brick(size=size-SEPARATION);
-    translate([0,0,BRICK_HEIGHT]) {
-        #intersection() {
-            for (w = ["N","NE","NE2","E","E2","E3","SE","SE2","S","SW","SW2","W","W2","W3","NW","NW2"]) {
-                if (has_wall(walls, w)) {
-                    echo(w=w, data=WALL_TYPES(w)(list=true), wall_size=wall_size(size, w));
-                    translate(wall_position(size, w)) cube(wall_size(size, w), center=true);
+/*
+    Create a single hex
+*/
+module create_hex(size, barriers) {
+    simple_hex(size=size-SEPARATION);
+    translate([0,0,TILE_HEIGHT]) {
+        intersection() {
+            #for (w = ["E","W","N","S","N2","S2","N3","S3","NE","SE","SW","NW","NE2","SE2","SW2","NW2"]) {
+                if (has_barrier(barriers, w)) {
+                    echo(w=w, data=BARRIER_PLACEMENTS(w)(list=true), barrier_size=barrier_size(size, w));
+                    translate(barrier_position(size, w)) cube(barrier_size(size, w), center=true);
                 }
             }
-            hex_prism(size=size-SEPARATION, height=BRICK_HEIGHT+WALL_HEIGHT);
+            hexagon_prism(size=size-SEPARATION, height=TILE_HEIGHT+WALL_HEIGHT);
         }
     }
 }
 
-module layout_bricks(size, bricks, row_size = 5) {
+module layout_hexes(size, bricks, row_size = 5) {
     dx = size * 2/sqrt(3) + WALL_THICKNESS;
     dy = size + WALL_THICKNESS;
     for (i=(range(bricks))) {
-        translate([dx*(i%row_size),dy*floor(i/row_size)]) hex_brick(size, bricks[i]);
+        translate([dx*(i%row_size),dy*floor(i/row_size)]) create_hex(size, bricks[i]);
     }
 }
 
-//unit_brick();
-//translate([0,1.2*DEFAULT_HEX_SIZE,0]) unit_brick();
-//translate([0,-1.2*DEFAULT_HEX_SIZE,0]) unit_brick();
-best_fit_tile_base(size=4);
-//tile_base(size=4);
-//hex_brick(DEFAULT_HEX_SIZE, walls=["N","S","NE","SE"]);
-//hex_brick(DEFAULT_HEX_SIZE, walls=["N","S","E","W","E2","W2","NE","SE","SW2","NW2"]);
-//hex_brick(DEFAULT_HEX_SIZE, walls=["W","E2","W3"]);
+//simple_hex();
+//translate([0,1.2*DEFAULT_HEX_SIZE,0]) simple_hex();
+//translate([0,-1.2*DEFAULT_HEX_SIZE,0]) simple_hex();
+//best_fit_tile_base(size=4);
+//tile_base(shape=TILE_SHAPE_TRAPEZOID, size=[1,2]);
+// enclosed rectangle
+//create_hex(DEFAULT_HEX_SIZE, barriers=["NW","N2","NE", "E", "SE","S2","SW", "W"]);
+// double cross
+create_hex(DEFAULT_HEX_SIZE, barriers=["N3","N2","N","S","S2","S3", "NE2","SE2","SW2","NW2"]);
+
+//create_hex(DEFAULT_HEX_SIZE, barriers=["N","S","E","W","E2","W2","NE","SE","SW2","NW2"]);
+//create_hex(DEFAULT_HEX_SIZE, barriers=["W","E2","W3"]);
+
 /*
-layout_bricks(DEFAULT_HEX_SIZE, bricks=[
+layout_hexes(DEFAULT_HEX_SIZE, bricks=[
     ["N","NW","W3","SW"], // edge corner (a)
-    ["W3","W2","W","E","E2","E3"], // center horizontal wall (b)
-    ["NW","W3","SW"], // outer vertical wall (c)
+    ["W3","W2","W","E","E2","E3"], // center horizontal barrier (b)
+    ["NW","W3","SW"], // outer vertical barrier (c)
     ["NW","W3","SW","NE","E3","SE"], // vertical hall (d)
-    ["N"], // edge horizontal wall (e)
+    ["N"], // edge horizontal barrier (e)
     ["W3","SW"], // outer corner (f)
     ["NW","W3","W2","W","E","E2","E3"], // center corner (h)
-    ["NW2","W2","SW2"], // inner vertical wall (i)
-    ["NW2","W3","SW2"], // inner vertical wall (i)
+    ["NW2","W2","SW2"], // inner vertical barrier (i)
+    ["NW2","W3","SW2"], // inner vertical barrier (i)
     []]); // plain
 */
