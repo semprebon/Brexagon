@@ -16,14 +16,17 @@ the minimal diameter - i.e., distance between opposite sides.
 //DEFAULT_HEX_SIZE = 38.1; // fits miniature base of 1.5"
 DEFAULT_HEX_SIZE = 31.750; // fits miniature base of 1.25" (i.e., BattleTech maps)
 
-DEFAULT_SIDE = DEFAULT_HEX_SIZE / sqrt(3); // hex side length
-
 Q_BASIS = [0,1]; // horizontal unit vector
 R_BASIS = [1,1]; // diagonal unit vector
 
 function default(value, default) = (value == undef) ? default : value;
-function range(count) = is_num(count) ? [0:(count-1)] : [0:(len(count)-1)];
 function is_odd(x) = (x % 2) != 0;
+
+function size_to_height(size) = (2 / sqrt(3)) * size;
+function size_to_side(size) = size_to_height(size) / 2;
+
+DEFAULT_SIDE = size_to_side(DEFAULT_HEX_SIZE); // hex side length
+
 
 /*
  Convert axial coordinates to cubic
