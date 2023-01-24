@@ -7,7 +7,7 @@
     axial coordinates (row is normal, col is tilted by 60 degrees from vertical.
     See shape positions functions for more detail.
 */
-
+include <ListUtils.scad>;
 /*
 The hex size is used as the default size for hexes throughout the code. It is
 the minimal diameter - i.e., distance between opposite sides.

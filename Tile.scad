@@ -1,12 +1,13 @@
 /*
     Basic tile construction used to create specific tiles
 
-    TODO: Brick pattern on tiles
-    TODO: stone pattern on floor
+    TODO: Brick pattern on walls (keep consistent at boundaries via scaling)
+    TODO: wood pattern/texture on floor
 */
 
 include <HexUtils.scad>
 include <Association.scad>
+include <PatternCutters.scad>
 
 // VERSION=0.11 - TENON_FIT=0.12
 //VERSION = 0.12; // TENON_FIT=0.08
@@ -36,7 +37,7 @@ TILE_SHAPE_RECTANGLE = "rectangle";
 /*
     Define a specified shape and size of tile from texture information
 */
-function define_tile(shape, size, data) =
+function define_tile(shape, size, hex_data=[[]], barriers=[]) =
     let(
         positions = (shape == TILE_SHAPE_HEXAGON) ? hex_positions(size)
             : (shape == TILE_SHAPE_TRAPEZOID) ? trapezoid_positions(size)
@@ -44,10 +45,16 @@ function define_tile(shape, size, data) =
             : (shape == "triangle") ? trapezoid_positions(1, (size.x == undef) ? size: size.x, 1)
             : ["error"],
         hexes = [for (i = range(len(positions)))
-                    let(datum = data[i % len(data)])
+                    let(datum = hex_data[i % len(hex_data)])
                     if (is_list(datum)) define_hex(position=positions[i], barriers=datum) ])
-        associate(["shape", shape, "size", size, "hexes", hexes]);
+        associate(["shape", shape, "size", size, "hexes", hexes, "barriers", barriers]);
 
+function barrier_point(x,y) = [x,y];
+//    let(x1 = x/2,
+//        y1 = floor(y/4) + [1/16,3/16,13/16,15/16][(y+4) % 4])
+//    [x1,y1];
+function y_barrier(x, y1, y2) = [barrier_point(x,y1), barrier_point(x,y2)];
+function x_barrier(y, x1, x2) = [barrier_point(x1,y), barrier_point(x2,y)];
 
 module hexagon_prism(size, height) {
     linear_extrude(height=height) hex_shape(size);
@@ -220,6 +227,25 @@ module tile_mortises(tile, height=TILE_HEIGHT-TOP_THICKNESS) {
     }
 }
 
+module barrier(size, p1, p2) {
+    //scale=[size,(9/16)*sqrt(3)*size];
+    //offset = scale_point([-1/2,11/16], scale);
+    scale=[size,size*2/sqrt(3)];
+    offset=[0,0];
+    //offset = scale_point([-1/2,11/16], scale);
+    start = scale_point(p1,scale) + offset;
+    end = scale_point(p2,scale) + offset;
+    width = (size/sqrt(3))/4;
+    vector = end-start;
+    length = sqrt(vector.x*vector.x + vector.y*vector.y);
+    rotation = atan2(vector.y, vector.x);
+
+    echo(p1=p1, p2=p2, scale=scale, width=width, start=start, end=end,
+        vector=vector, length=length, rotation=rotation);
+    translate([start.x,start.y,0]) rotate([0,0,rotation])
+        translate([0,-width/2,0]) cube([length,width,WALL_HEIGHT]);
+}
+
 /*
     Create a tile
 */
@@ -228,32 +254,48 @@ module create_tile(tile) {
     size = DEFAULT_HEX_SIZE;
     hex_size = size - SEPARATION;
     difference() {
-        union() {
-            // Outer shape
-            linear_extrude(height=TILE_HEIGHT) {
-                offset(delta=SEPARATION/2) {
-                    for (i = range(hexes)) {
-                        translate(hex_center(hexes, i)) hex_shape(DEFAULT_HEX_SIZE);
+        intersection() {
+            union() {
+                // Outer shape
+                linear_extrude(height=TILE_HEIGHT) {
+                    offset(delta=SEPARATION/2) {
+                        for (i = range(hexes)) {
+                            translate(hex_center(hexes, i)) hex_shape(DEFAULT_HEX_SIZE);
+                        }
                     }
                 }
+                // raised area
+                translate([0,0,TILE_HEIGHT]) for (i = range(hexes)) {
+                    translate(hex_center(hexes, i)) beveled_hexagon_prism(hex_size, height=WALL_THICKNESS/2);
+                }
+                // hex decoration
+                for (i = range(hexes)) {
+                    translate(hex_center(hexes, i)) decorate_hex(size, hexes[i]);
+                }
+                // debug id
+                translate([0,0,TILE_HEIGHT]) for (i = range(hexes)) {
+                    translate(hex_center(hexes, i)) label_hex(i);
+                }
+                // barriers
+                translate([0,0,2*TILE_HEIGHT]) for (b = tile("barriers")) {
+                    echo(barrier=b);
+                    barrier(size, b[0], b[1]);
+                }
+                // zero
+                //cylinder(r=1, h=20);
             }
-            // raised area
-            translate([0,0,TILE_HEIGHT]) for (i = range(hexes)) {
-                translate(hex_center(hexes, i)) beveled_hexagon_prism(hex_size, height=WALL_THICKNESS/2);
+            // trim walls
+            linear_extrude(height=BASE_HEIGHT+WALL_HEIGHT) {
+                offset(delta=-TOLERANCE) {
+                    tile_shape(tile);
+                }
             }
-            // hex decoration
-            for (i = range(hexes)) {
-                translate(hex_center(hexes, i)) decorate_hex(size, hexes[i]);
-            }
-            // debug id
-//            translate([0,0,TILE_HEIGHT]) for (i = range(hexes)) {
-//                translate(hex_center(hexes, i)) label_hex(i);
-//            }
         }
         // mortises
         tile_mortises(tile);
         // bottom outer bevel
         bottom_bevel_cutter(bevel=0.4) offset(delta=SEPARATION/2) tile_shape(tile);
+
     }
 }
 
