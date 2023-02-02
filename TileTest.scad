@@ -2,6 +2,7 @@
     Test models for Tile.scad
 */
 include <Tile.scad>
+include <TestSupport.scad>
 
 module test_tenon_fit() {
     tile = define_tile(TILE_SHAPE_HEXAGON, 1, [[]]);
@@ -26,6 +27,7 @@ H1_FLOOR = define_tile(TILE_SHAPE_HEXAGON, 1,[[]]);
 H2_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,1], [[]]);
 H3_FLOOR = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]]);
 H4_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,2], [[],[],[],[]]);
+
 H2_X_WALL = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],undef],
     barriers=[x_barrier(y=7/16, x1=-0.5, x2=1)]);
 H1_Y_WALL = define_tile(TILE_SHAPE_HEXAGON, 1, [[]],
@@ -46,7 +48,6 @@ H3_CORNER_T_A = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]],
 H4_CORNER_ENTRY = define_tile(TILE_SHAPE_TRAPEZOID, [2,2], [[],undef,[],[],[]],
     barriers=[x_barrier(y=5/16, x1=-0.5, x2=0.5), y_barrier(x=0.5, y1=6/16, y2=-5/16),
         y_barrier(x=1.5, y1=5/16, y2=-5/16)]);
-
 /*
 tile = define_tile(TILE_SHAPE_HEXAGON, [2,2], [
     ["SW","S3","SE"],undef,
@@ -54,39 +55,30 @@ tile = define_tile(TILE_SHAPE_HEXAGON, [2,2], [
     ["NW","N3","NE"],undef]);
 */
 
-module layout_items(items_per_row=3, area=[220,220]) {
-    items_per_column = ceil($children / items_per_row);
-    delta = [area.x/items_per_row, area.y/items_per_column];
-    offset = [delta.x/2, delta.y/2];
-    echo(delta=delta);
-    for (i = range($children)) {
-        let(
-            x = offset.x + (i % items_per_row)*delta.x,
-            y = offset.y + (floor(i / items_per_row))*delta.y)
-        {
-            echo(position = [x,y]);
-            translate([x,y,0]) children(i);
-        }
-    }
-}
-//test_tenon_fit();
-//tile_mortises(define_tile(TILE_SHAPE_HEXAGON,1, [[]]));
-// New barriers: 36.9s  Old Barriers: 36.3
+//layout_tiles(spacing=3, tiles=[
+//    H2_Y_WALL,
+//    H2_X_WALL,
+//    H3_CORNER_A,
+//    H3_X_HALL,
+//    H4_CORNER_ENTRY,
+//    H1_T_WALL_A], pattern=BRICK_PATTERN);
+    //
+    //create_tile(H1_FLOOR);
+    //create_tile(H2_FLOOR);
+    //create_tile(H3_FLOOR);
+    //create_tile(H4_FLOOR);
+    //create_tile(H2_Y_WALL);
+    //create_tile(H2_X_WALL);
+    //create_tile(H3_CORNER_A);
+    //create_tile(H3_X_HALL);
+    //create_tile(H3_Y_HALL);
+    //create_tile(H1_Y_WALL);
+    //create_tile(H1_T_WALL_A);
+    //create_tile(H3_CORNER_T_A);
+/*
+    H4_CORNER_ENTRY - Render: 2:15s, Vertices:2900
+*/
+create_tile(H4_CORNER_ENTRY, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]),
+    floor_pattern=WOOD_PATTERN);
 
-layout_items(3) {
-    create_tile(H1_FLOOR);
-    create_tile(H2_FLOOR);
-    create_tile(H3_FLOOR);
-    create_tile(H4_FLOOR);
-    create_tile(H1_Y_WALL);
-    create_tile(H2_X_WALL);
-    create_tile(H2_Y_WALL);
-    create_tile(H3_X_HALL);
-    create_tile(H3_Y_HALL);
-    create_tile(H3_CORNER_A);
-    create_tile(H1_T_WALL_A);
-    create_tile(H3_CORNER_T_A);
-    create_tile(H4_CORNER_ENTRY);
-}
-
-//create_tile(H4_CORNER_ENTRY);
+//test_successive_sums();

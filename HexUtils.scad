@@ -63,7 +63,7 @@ function axial_distance(a, b) =
 /*
  Convert axial hex coordinates to cartesian coordinates
 */
-function axial_to_xy(axial, size) = [dx(size) * (2*axial.x + axial.y), dy(size) * 3 * axial.y, 0];
+function axial_to_xy(axial, size=DEFAULT_HEX_SIZE) = [dx(size) * (2*axial.x + axial.y), dy(size) * 3 * axial.y, 0];
 
 /*
  Create a 2d hex with center at the origin
