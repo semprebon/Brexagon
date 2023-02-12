@@ -7,9 +7,9 @@
     TODO: provide separate end and top patterns
     TODO: make associations easier to update without having to code all properties each time
 */
-include <ListUtils.scad>
 include <HexUtils.scad>
-include <Association.scad>
+include <OpenSCADLibraries/Association.scad>
+include <OpenSCADLibraries/ListUtils.scad>
 include <ClippingAlgorithm.scad>
 
 /*
@@ -144,7 +144,7 @@ function set_pattern_depth(pattern, depth) =
     define_pattern(size=pattern("size"), grooves=pattern("grooves"), depth=depth, tag = pattern("tag"));
 
 function scale_pattern(pattern, scale) =
-    echo("scale_pattern: ", pattern=pattern(list=true))
+    //echo("scale_pattern: ", pattern=pattern(list=true))
     let(
         new_size = map2(pattern("size"), scale, function(a,b) a*b) )
     define_pattern(
@@ -156,7 +156,7 @@ function scale_pattern(pattern, scale) =
         tag = str("scaled ", pattern("tag")));
 
 function expand_pattern(pattern, repeat, offset) =
-    echo("expand_pattern: ", pattern=pattern(list=true), repeat=repeat, offset=offset)
+    //cho("expand_pattern: ", pattern=pattern(list=true), repeat=repeat, offset=offset)
     let(
         x=1,
         size = pattern("size"),
@@ -170,8 +170,7 @@ function expand_pattern(pattern, repeat, offset) =
             for (groove = pattern("grooves"))
                 each [ for (j = range(repeat.y))
                     each [ for (i = range(repeat.x))
-                        map_groove_points(groove, function (p) p + y_offset*j + x_offset*i + centering_offset) ]]],
-        xxx = echo("expand_pattern: ", tag=pattern("tag"), grooves=list_grooves(grooves)) )
+                        map_groove_points(groove, function (p) p + y_offset*j + x_offset*i + centering_offset) ]]])
     define_pattern(
         size = new_size,
         depth = pattern("depth"),
@@ -208,13 +207,23 @@ function repeated_x_grooves(n, dy, p0=[0,0], depth=0.3, size=DEFAULT_PATTERN_SIZ
 function repeated_y_grooves(n, dx, p0=[0,0], depth=0.3, size=DEFAULT_PATTERN_SIZE) =
     [ for (i = range(n)) define_groove(path=[[i*dx, 0]+p0, [i*dx, size.y]+p0], depth=depth) ];
 
-function brick_pattern(brick_counts, size=DEFAULT_PATTERN_SIZE, depth=0.3, x_offset) =
+/*
+    Create a pattern with lines running the full x length, but with y segments
+    dividing the bars into shorter segments.
+
+    brick_counts - number of "bricks" in the x and y directions; used to calculate length and width
+    size - total size of pattern
+    depth - depth of cut
+    x_offset - rows are offset by a multiple of this amount; a fraction of the brick length.
+*/
+function brick_pattern(brick_counts, brick_size, size=DEFAULT_PATTERN_SIZE, depth=0.3, x_offsets=[0,0.5]) =
     let(
-        d = [ for (i = range(brick_counts)) size[i] / brick_counts[i] ],
-        _x_offset = is_undef(x_offset) ? d.x/2 : x_offset,
-        horizontals = repeated_x_grooves(brick_counts.y+1, d.y, size=size),
-        verticals = flatten([ for (j=range(brick_counts.y))
-                repeated_y_grooves(brick_counts.x, d.x, p0=[(j % 2) * _x_offset, j*d.y], size=[size.x, d.y]) ]) )
+        d = is_undef(brick_size) ? [ for (i = range(brick_counts)) size[i] / brick_counts[i] ] : brick_size,
+        counts = is_undef(brick_counts) ? [ for (i = range(d)) ceil(size[i] / d[i]) ] : brick_counts,
+        offsets = d.x * x_offsets,
+        horizontals = repeated_x_grooves(counts.y+1, d.y, size=size),
+        verticals = flatten([ for (j=range(counts.y))
+                repeated_y_grooves(counts.x, d.x, p0=[offsets[j%len(offsets)], j*d.y], size=[size.x, d.y]) ]) )
     define_pattern(
         size = size,
         depth = depth,
@@ -262,9 +271,11 @@ module cut_pattern(pattern, offset=[0,0,0], rotation=[0,0,0]) {
         translate(offset) rotate(rotation) pattern_cutter(pattern);
 }
 
-BRICK_PATTERN = brick_pattern(brick_counts = [5,4], depth=0.3);
+BRICK_PATTERN = brick_pattern(brick_counts = [5,4], depth=0.4);
 
-WOOD_PATTERN = brick_pattern(brick_counts = [3,20], depth=0.15, size=[5*DEFAULT_SIDE, 3*DEFAULT_HEX_SIZE]);
+WOOD_PATTERN = brick_pattern(brick_size = [DEFAULT_HEX_SIZE,DEFAULT_SIDE/4], depth=0.2,
+    size=[3*DEFAULT_HEX_SIZE, 10*DEFAULT_SIDE],
+    x_offsets=[0.2,0.0,0.6,0.9]);
 /*
     size=[20,6],
     tag = "WOOD",

@@ -7,7 +7,7 @@
     axial coordinates (row is normal, col is tilted by 60 degrees from vertical.
     See shape positions functions for more detail.
 */
-include <ListUtils.scad>;
+include <OpenSCADLibraries/ListUtils.scad>
 /*
 The hex size is used as the default size for hexes throughout the code. It is
 the minimal diameter - i.e., distance between opposite sides.
@@ -63,7 +63,7 @@ function axial_distance(a, b) =
 /*
  Convert axial hex coordinates to cartesian coordinates
 */
-function axial_to_xy(axial, size=DEFAULT_HEX_SIZE) = [dx(size) * (2*axial.x + axial.y), dy(size) * 3 * axial.y, 0];
+function axial_to_xy(axial, size=DEFAULT_HEX_SIZE) = [dx(size) * (2*axial.x + axial.y), dy(size) * 3 * axial.y];
 
 /*
  Create a 2d hex with center at the origin

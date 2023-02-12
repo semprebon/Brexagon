@@ -1,5 +1,4 @@
 include <HexUtils.scad>
-include <TestSupport.scad>
 
 module test_hexes_per_row() {
     tag = "hex_per_row";

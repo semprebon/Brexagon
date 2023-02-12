@@ -2,7 +2,6 @@
     Test models for Tile.scad
 */
 include <Tile.scad>
-include <TestSupport.scad>
 
 module test_tenon_fit() {
     tile = define_tile(TILE_SHAPE_HEXAGON, 1, [[]]);
@@ -23,31 +22,6 @@ module test_tenon_fit() {
 //create_hex(DEFAULT_HEX_SIZE, barriers=["N","S","E","W","E2","W2","NE","SE","SW2","NW2"]);
 //create_hex(DEFAULT_HEX_SIZE, barriers=["W","E2","W3"]);
 
-H1_FLOOR = define_tile(TILE_SHAPE_HEXAGON, 1,[[]]);
-H2_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,1], [[]]);
-H3_FLOOR = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]]);
-H4_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,2], [[],[],[],[]]);
-
-H2_X_WALL = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],undef],
-    barriers=[x_barrier(y=7/16, x1=-0.5, x2=1)]);
-H1_Y_WALL = define_tile(TILE_SHAPE_HEXAGON, 1, [[]],
-    barriers=[y_barrier(x=0, y1=-0.5, y2=0.5)]);
-H2_Y_WALL = define_tile(TILE_SHAPE_RECTANGLE, [2,1], [[],[]],
-    barriers=[y_barrier(x=0.5, y1=-5/16, y2=5/16)]);
-H3_X_HALL = define_tile(TILE_SHAPE_HEXAGON, 2, [[],undef,[],undef,undef,[],undef],
-    barriers=[x_barrier(y=7/16, x1=-0.5, x2=1),x_barrier(y=-7/16, x1=-0.5, x2=1)]);
-H3_Y_HALL = define_tile(TILE_SHAPE_RECTANGLE, [3,1], [[],[],[]],
-    barriers=[y_barrier(x=0.5, y1=-5/16, y2=5/16),y_barrier(x=1.5, y1=-5/16, y2=5/16)]);
-H3_CORNER_A = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]],
-    barriers=[x_barrier(y=7/16, x1=-0.5, x2=0.5),y_barrier(x=0.5, y1=-5/16, y2=0.5)]);
-H1_T_WALL_A = define_tile(TILE_SHAPE_HEXAGON, 1, [[]],
-    barriers=[y_barrier(x=0, y1=-0.5, y2=0.5),x_barrier(y=-5/16,x1=0,x2=0.5)]);
-H3_CORNER_T_A = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]],
-    barriers=[x_barrier(y=5/16,x1=-0.5,x2=0.5),y_barrier(x=0.5, y1=4/16, y2=1+4/16),
-        x_barrier(y=1+1/16,x1=0.5,x2=1)]);
-H4_CORNER_ENTRY = define_tile(TILE_SHAPE_TRAPEZOID, [2,2], [[],undef,[],[],[]],
-    barriers=[x_barrier(y=5/16, x1=-0.5, x2=0.5), y_barrier(x=0.5, y1=6/16, y2=-5/16),
-        y_barrier(x=1.5, y1=5/16, y2=-5/16)]);
 /*
 tile = define_tile(TILE_SHAPE_HEXAGON, [2,2], [
     ["SW","S3","SE"],undef,
@@ -78,7 +52,20 @@ tile = define_tile(TILE_SHAPE_HEXAGON, [2,2], [
 /*
     H4_CORNER_ENTRY - Render: 2:15s, Vertices:2900
 */
-create_tile(H4_CORNER_ENTRY, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]),
-    floor_pattern=WOOD_PATTERN);
 
-//test_successive_sums();
+//create_tile(H4_CORNER_ENTRY, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]),
+//    floor_pattern=WOOD_PATTERN);
+tile = define_tile(TILE_SHAPE_HEXAGON, 1,[[]]);
+//intersection() {
+//    union() {
+//        translate([0,0,BASE_HEIGHT+TOLERANCE]) create_tile(tile, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]), floor_pattern=BLANK_PATTERN);
+//        tile_base(define_tile(TILE_SHAPE_HEXAGON, 1, [[],[],[]]));
+//    }
+//    cube([50,50,BASE_HEIGHT+3], center=true);
+//}
+
+//translate([DEFAULT_HEX_SIZE+2,0,0]) create_tile(tile, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]), floor_pattern=BLANK_PATTERN);
+//tile_base(define_tile(TILE_SHAPE_HEXAGON, 1, [[],[],[]]));
+
+tile_clip();
+translate([0,PIN_HEIGHT+CLIP_HEIGHT+TOLERANCE+3,0]) mirror([0,1,0]) tile_clip_socket();
