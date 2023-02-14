@@ -35,7 +35,6 @@ module create_barrier(size, angle=0) {
 module patterned_barrier(size, angle=0, offset=[0,0], scale=[1,1], ends=false, pattern=BLANK_PATTERN) {
     //echo("patterned_barrier: ", pattern=pattern(list=true));
     difference() {
-        echo("creatnig barrire");
         create_barrier(size, angle);
         barrier_pattern_cutter(size, angle, offset, scale, ends, pattern);
     }
