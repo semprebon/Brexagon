@@ -67,5 +67,36 @@ tile = define_tile(TILE_SHAPE_HEXAGON, 1,[[]]);
 //translate([DEFAULT_HEX_SIZE+2,0,0]) create_tile(tile, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]), floor_pattern=BLANK_PATTERN);
 //tile_base(define_tile(TILE_SHAPE_HEXAGON, 1, [[],[],[]]));
 
-tile_clip();
-translate([0,PIN_HEIGHT+CLIP_HEIGHT+TOLERANCE+3,0]) mirror([0,1,0]) tile_clip_socket();
+module test_corner_points_with_0_offset() {
+    tile = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]]);
+    corners = corner_points(tile);
+    for (p = corners) {
+        translate(p) sphere(r=3);
+    }
+}
+
+module test_elevations() {
+    // hex centers (assumes hexes are aligned vertically with origin at center hex
+    a = [1/2, -size_to_height(3/4)] * DEFAULT_HEX_SIZE;
+    b = [0,0];
+    c = [1/2, size_to_height(3/4)] * DEFAULT_HEX_SIZE;
+
+    elevation = define_elevation(
+        polygon=[
+            e_pnt(a,"Sb"), e_pnt(a,"SE"), e_pnt(a,"NE"), e_pnt(a,"N"), e_pnt(b,"SE"),
+            e_pnt(b,"NE"), e_pnt(c,"S"), e_pnt(c,"SE"), e_pnt(c,"NEa"), e_pnt(c,"Nc"),
+            e_pnt(c,"NWc"), e_pnt(c,"SWc"), e_pnt(b,"Na"), e_pnt(b,"NWc"), e_pnt(b,"SWc"),
+            e_pnt(b,"SWc"), e_pnt(b,"Sb"), e_pnt(a,"NWc"), e_pnt(a,"SWc")],
+        height = BARRIER_HEIGHT);
+
+    tile = define_tile(TILE_SHAPE_HEXAGON, 2, [[],undef,[],undef,undef,[],undef],
+        elevations = [elevation]);
+    create_tile(tile=tile);
+}
+
+module test_all() {
+    translate([75,0,0]) test_elevations();
+    test_corner_points_with_0_offset();
+}
+
+test_all();

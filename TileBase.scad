@@ -22,6 +22,7 @@ module tile_base(tile) {
     //-size_to_side(guide_size);
     //clip_slot_size = [2*PIN_RADIUS+2*TOLERANCE,CLIP_WIDTH+2*TOLERANCE,BASE_HEIGHT+4*TOLERANCE];
     clip_slot_size = [CLIP_BASE_SIZE.x+LATCH_INSET, CLIP_WIDTH, BASE_HEIGHT] + 2*TOLERANCE*[2,1,2];
+    screw_hole_radius = 1.0;
 
     difference() {
         union() {
@@ -49,6 +50,11 @@ module tile_base(tile) {
         for (i = range(hexes)) {
             translate(hex_center(hexes, i)) hexagon_prism(size=ACCESS_SIZE, height=TILE_HEIGHT);
         }
+        // Screw hole
+        for (i = range(hexes)) {
+            translate(hex_center(hexes, i)) hexagon_prism(size=ACCESS_SIZE, height=TILE_HEIGHT);
+        }
+
         // clip slot
         for (i = range(hexes)) {
             translate(hex_center(hexes, i)) rotate([0,0,clip_angle(tile, i)]) {
