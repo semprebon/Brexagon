@@ -38,7 +38,7 @@ module elevation_to_polygon(vertices, elevation) {
     bottom_face = [ for (i = top_face) i + max ];
     echo(points=concat(top_polygon, bottom_polygon), triangles=concat(side_faces, [top_face, bottom_face]));
     polyhedron(points = concat(top_polygon, bottom_polygon),
-        faces = concat(side_faces, [top_face, bottom_face]), convexity = 10);
+        faces = concat(side_faces, [reverse(top_face), bottom_face]), convexity = 10);
 }
 
 module raise_elevation(vertices, elevation) {

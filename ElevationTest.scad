@@ -13,7 +13,7 @@ module test_tiny_hill() {
     elevation = define_elevation(
         polygon = [ for (pos = ["Nc", "NEc", "SEc", "Sc", "SWc", "NWc"]) e_pnt([0,0], pos) ],
         height = BARRIER_HEIGHT);
-    tile = define_tile(TILE_SHAPE_HEXAGON, 1, [[]]);
+    tile = define_tile(TILE_SHAPE_HEXAGON, 1);
     raise_elevation(tile_vertices(tile), elevation);
 }
 
@@ -22,7 +22,7 @@ module test_cliff() {
     a = [1/2, -size_to_height(3/4)] * DEFAULT_HEX_SIZE;
     b = [0,0];
     c = [1/2, size_to_height(3/4)] * DEFAULT_HEX_SIZE;
-    tile = define_tile(TILE_SHAPE_HEXAGON, 2, [[],undef,[],undef,undef,[],undef]);
+    tile = define_tile(TILE_SHAPE_HEXAGON, 2, [0,2,5]);
 
     elevation = define_elevation(
         polygon=[
@@ -31,11 +31,9 @@ module test_cliff() {
             e_pnt(c,"NWc"), e_pnt(c,"SWc"), e_pnt(b,"Na"), e_pnt(b,"NWc"), e_pnt(b,"SWc"),
             e_pnt(b,"SWc"), e_pnt(b,"Sb"), e_pnt(a,"NWc"), e_pnt(a,"SWc")],
         height = BARRIER_HEIGHT);
-    //#polygon(elevation("polygon"));
-    #tile_shape(tile);
+    echo(vertices=tile_vertices(tile));
+    echo(elevation=elevation(list=true));
     raise_elevation(tile_vertices(tile), elevation);
-    echo(a_NWc=e_pnt(a,"NWc"));
-    %translate(concat(e_pnt(a,"SWc"), [BARRIER_HEIGHT])) sphere(r=1);
 }
 
 module test_all() {

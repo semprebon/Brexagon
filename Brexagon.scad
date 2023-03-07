@@ -1,5 +1,5 @@
 
-SHAPE = "CLIP"; // [ BASE, CLIP, H1_FLOOR, H2_FLOOR, H3_FLOOR, H4_FLOOR, H2_Y_WALL, H2_X_WALL, H1_Y_WALL, H3_X_HALL, H3_Y_HALL, H3_CORNER_A, H1_T_WALL_A, H3_CORNER_T_A, H4_CORNER_ENTRY, H2_X_ENTRY]
+SHAPE = "CLIP"; // [ BASE, CLIP, CLIP_TOOL, H1_FLOOR, H2_FLOOR, H3_FLOOR, H4_FLOOR, H2_Y_WALL, H2_X_WALL, H1_Y_WALL, H3_X_HALL, H3_Y_HALL, H3_CORNER_A, H1_T_WALL_A, H3_CORNER_T_A, H4_CORNER_ENTRY, H2_X_ENTRY, SD_3A_DOUBLE_SLOPE]
 
 WALL_PATTERN = "BLANK"; // [BLANK, BRICK, WOOD]
 FLOOR_PATTERN = "BLANK"; // [BLANK, BRICK, WOOD]
@@ -11,33 +11,34 @@ include <Tile.scad>
 include <TileBase.scad>
 
 // tile shapes
-H1_FLOOR = define_tile(TILE_SHAPE_HEXAGON, 1,[[]]);
-H2_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,1], [[]]);
-H3_FLOOR = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]]);
-H4_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,2], [[],[],[],[]]);
+H1_FLOOR = define_tile(TILE_SHAPE_HEXAGON, 1);
+H2_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,1]);
+H3_FLOOR = define_tile(TILE_SHAPE_TRAPEZOID, [1,2]);
+H4_FLOOR = define_tile(TILE_SHAPE_RECTANGLE, [2,2]);
 
-H2_X_WALL = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],undef],
+H2_X_WALL = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], used=[0,1],
     barriers=[x_barrier(y=7/16, x1=-0.5, x2=1)]);
-H1_Y_WALL = define_tile(TILE_SHAPE_HEXAGON, 1, [[]],
+H1_Y_WALL = define_tile(TILE_SHAPE_HEXAGON, 1,
     barriers=[y_barrier(x=0, y1=-0.5, y2=0.5)]);
-H2_Y_WALL = define_tile(TILE_SHAPE_RECTANGLE, [2,1], [[],[]],
+H2_Y_WALL = define_tile(TILE_SHAPE_RECTANGLE, [2,1],
     barriers=[y_barrier(x=0.5, y1=-5/16, y2=5/16)]);
-H3_X_HALL = define_tile(TILE_SHAPE_HEXAGON, 2, [[],undef,[],undef,undef,[],undef],
+H3_X_HALL = define_tile(TILE_SHAPE_HEXAGON, 2, used=[0,2,5],
     barriers=[x_barrier(y=7/16, x1=-0.5, x2=1),x_barrier(y=-7/16, x1=-0.5, x2=1)]);
-H3_Y_HALL = define_tile(TILE_SHAPE_RECTANGLE, [3,1], [[],[],[]],
+H3_Y_HALL = define_tile(TILE_SHAPE_RECTANGLE, [3,1],
     barriers=[y_barrier(x=0.5, y1=-5/16, y2=5/16),y_barrier(x=1.5, y1=-5/16, y2=5/16)]);
-H3_CORNER_A = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]],
+H3_CORNER_A = define_tile(TILE_SHAPE_TRAPEZOID, [1,2],
     barriers=[x_barrier(y=7/16, x1=-0.5, x2=0.5),y_barrier(x=0.5, y1=-5/16, y2=0.5)]);
-H1_T_WALL_A = define_tile(TILE_SHAPE_HEXAGON, 1, [[]],
+H1_T_WALL_A = define_tile(TILE_SHAPE_HEXAGON, 1,
     barriers=[y_barrier(x=0, y1=-0.5, y2=0.5),x_barrier(y=-5/16,x1=0,x2=0.5)]);
-H3_CORNER_T_A = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]],
+H3_CORNER_T_A = define_tile(TILE_SHAPE_TRAPEZOID, [1,2],
     barriers=[x_barrier(y=5/16,x1=-0.5,x2=0.5),y_barrier(x=0.5, y1=4/16, y2=1+4/16),
         x_barrier(y=1+1/16,x1=0.5,x2=1)]);
-H4_CORNER_ENTRY = define_tile(TILE_SHAPE_TRAPEZOID, [2,2], [[],undef,[],[],[]],
+H4_CORNER_ENTRY = define_tile(TILE_SHAPE_TRAPEZOID, [2,2], used=[0,2,3,4],
     barriers=[x_barrier(y=5/16, x1=-0.5, x2=0.5), y_barrier(x=0.5, y1=6/16, y2=-5/16),
         y_barrier(x=1.5, y1=5/16, y2=-5/16)]);
-H2_X_ENTRY = define_tile(TILE_SHAPE_RECTANGLE, [2,1], [[],[]],
+H2_X_ENTRY = define_tile(TILE_SHAPE_RECTANGLE, [2,1],
      barriers=[x_barrier(y=7/16, x1=0.5, x2=1.5),x_barrier(y=-7/16, x1=0.5, x2=1.5)]);
+SD_3A_DOUBLE_SLOPE = define_tile(TILE_SHAPE_HEXAGON, 2);
 
 SHAPES = associate([
     // Floors
@@ -51,7 +52,9 @@ SHAPES = associate([
     // Complex Corners
     "H1_T_WALL_A", H1_T_WALL_A, "H3_CORNER_T_A", H3_CORNER_T_A,
     // Entrances
-    "H4_CORNER_ENTRY", H4_CORNER_ENTRY, "H2_X_ENTRY", H2_X_ENTRY]);
+    "H4_CORNER_ENTRY", H4_CORNER_ENTRY, "H2_X_ENTRY", H2_X_ENTRY,
+    // Slopes
+    "SD_3A_DOUBLE_SLOPE", SD_3A_DOUBLE_SLOPE]);
 
 PATTERNS = associate([
     "BLANK", BLANK_PATTERN, "BRICK", BRICK_PATTERN, "WOOD", WOOD_PATTERN]);
@@ -60,6 +63,8 @@ if (SHAPE == "BASE") {
     best_fit_tile_base(BASE_TYPE, BASE_SIZE);
 } else if (SHAPE == "CLIP") {
     tile_clip();
+} else if (SHAPE == "CLIP_TOOL") {
+    clip_tool();
 } else {
     create_tile(SHAPES(SHAPE), wall_pattern=PATTERNS(WALL_PATTERN), floor_pattern=PATTERNS(FLOOR_PATTERN));
 }

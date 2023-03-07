@@ -55,9 +55,9 @@ tile = define_tile(TILE_SHAPE_HEXAGON, [2,2], [
 
 //create_tile(H4_CORNER_ENTRY, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]),
 //    floor_pattern=WOOD_PATTERN);
-tile = define_tile(TILE_SHAPE_HEXAGON, 1,[[]]);
+tile = define_tile(TILE_SHAPE_HEXAGON, 1);
 //intersection() {
-//    union() {
+//    7union() {
 //        translate([0,0,BASE_HEIGHT+TOLERANCE]) create_tile(tile, wall_pattern=scale_pattern(BRICK_PATTERN, scale=[1,1]), floor_pattern=BLANK_PATTERN);
 //        tile_base(define_tile(TILE_SHAPE_HEXAGON, 1, [[],[],[]]));
 //    }
@@ -68,7 +68,7 @@ tile = define_tile(TILE_SHAPE_HEXAGON, 1,[[]]);
 //tile_base(define_tile(TILE_SHAPE_HEXAGON, 1, [[],[],[]]));
 
 module test_corner_points_with_0_offset() {
-    tile = define_tile(TILE_SHAPE_TRAPEZOID, [1,2], [[],[],[]]);
+    tile = define_tile(TILE_SHAPE_TRAPEZOID, [1,2]);
     corners = corner_points(tile);
     for (p = corners) {
         translate(p) sphere(r=3);
@@ -88,15 +88,28 @@ module test_elevations() {
             e_pnt(c,"NWc"), e_pnt(c,"SWc"), e_pnt(b,"Na"), e_pnt(b,"NWc"), e_pnt(b,"SWc"),
             e_pnt(b,"SWc"), e_pnt(b,"Sb"), e_pnt(a,"NWc"), e_pnt(a,"SWc")],
         height = BARRIER_HEIGHT);
-
-    tile = define_tile(TILE_SHAPE_HEXAGON, 2, [[],undef,[],undef,undef,[],undef],
+    echo("Defining tile:");
+    tile = define_tile(TILE_SHAPE_HEXAGON, 2, [0,2,5],
         elevations = [elevation]);
+    echo(tile=tile(list=true));
     create_tile(tile=tile);
 }
 
 module test_all() {
     translate([75,0,0]) test_elevations();
-    test_corner_points_with_0_offset();
+}
+ module test_in_list() {
+    list = [0];
+    a = 0;
+    i = index_of(list, a);
+    u = is_undef(index_of(list, a));
+    il = !is_undef(index_of(list, a));
+    echo(list=list, a=a, index=i, is_undef=u, not_is_undef=il);
+    echo(in_list=in_list(list, a), index_of=index_of([0],0), is_undef=is_undef(index_of([0],0)));
+   // assert(in_list([0], 0), "singleton list contains item");
+    assert(!in_list([], 0), "empty list does not contain item");
+    assert(!in_list([1,2], 0), "list without item does not contain item");
 }
 
-test_all();
+test_in_list();
+//test_all();
