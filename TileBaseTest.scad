@@ -6,7 +6,12 @@ dz = 0;
 cutaway_view = "none"; // [ none, front, side, top ]
 max_size = 5*size_to_height(DEFAULT_HEX_SIZE);
 
-tile = define_tile(TILE_SHAPE_HEXAGON, [1,1]);
+tile = define_tile(TILE_SHAPE_HEXAGON, [1,1],
+    elevations = [define_elevation(
+                         polygon = [ for (pos = ["Nc", "NEc", "SEc", "Sc", "SWc", "NWc"]) e_pnt([0,0], pos) ],
+                         height = BARRIER_HEIGHT)]);
+
+tile2 = define_tile(TILE_SHAPE_HEXAGON, [1,1]);
 
 intersection() {
     union() {
@@ -14,7 +19,7 @@ intersection() {
         if (cutaway_view != "none") {
             translate([0,0,0]) rotate([90,0,0]) translate([0,0,-CLIP_WIDTH/2]) tile_clip();
             translate([0,0,BASE_HEIGHT+TOLERANCE]) create_tile(tile);
-           translate([0,0,-BASE_HEIGHT-TOLERANCE]) clip_tool();
+            //translate([0,0,-BASE_HEIGHT-TOLERANCE]) clip_tool();
         } else {
             translate([0,dy/2,0]) tile_clip();
             translate([0,-dy,dz]) create_tile(tile, floor_pattern=WOOD_PATTERN);

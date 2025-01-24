@@ -32,7 +32,7 @@ PIN_HEIGHT = TILE_HEIGHT - TOP_THICKNESS;
 LATCH_INSET = 1.5*LINE_WIDTH;   // inset from latch tip to pin shaft
 CLIP_HEIGHT = 6*LAYER_HEIGHT;
 CLIP_WIDTH = 8;
-SOCKET_RADIUS = 1;
+SOCKET_RADIUS = 2;
 
 BARRIER_HEIGHT = DEFAULT_SIDE;
 
@@ -125,6 +125,8 @@ function barrier_point(x,y) = [x,y];
 //    [x1,y1];
 function y_barrier(x, y1, y2) = [barrier_point(x,y1), barrier_point(x,y2)];
 function x_barrier(y, x1, x2) = [barrier_point(x1,y), barrier_point(x2,y)];
+
+function is_elevated(tile, hex_index) = !is_empty(tile("elevations"));
 
 module hexagon_prism(size, height) {
     linear_extrude(height=height) hex_shape(size);
@@ -246,15 +248,16 @@ module label_hex(i) {
     linear_extrude(height=2) text(text=str(i));
 }
 
-module tile_mortises(tile, height=TILE_HEIGHT-TOP_THICKNESS) {
+module tile_mortises(tile) {
     hexes = tile("hexes");
     //size = DEFAULT_HEX_SIZE;
     //hex_size = size - SEPARATION;
     bevel = LAYER_HEIGHT;
     for (i = range(hexes)) {
         translate(hex_center(hexes, i)) {
+            _height = TILE_HEIGHT - (is_elevated(tile, i) ? 0 : TOP_THICKNESS);
             difference() {
-                hexagon_prism(size=MORTISE_SIZE, height=TILE_HEIGHT-TOP_THICKNESS);
+                hexagon_prism(size=MORTISE_SIZE, height=_height);
                 center_column();
             }
 
@@ -310,6 +313,12 @@ ECHO: elevation = ["polygon", [[19.5938, -42.5255], [30.75, -36.0844], [30.75, -
 /*
     Create a tile
 */
+
+/*
+    Determine if a given tile is elevated.
+
+    TODO: resolve to hex level, not tile level
+*/
 module create_tile(tile, wall_pattern, floor_pattern) {
     hexes = tile("hexes");
     size = DEFAULT_HEX_SIZE;
@@ -328,7 +337,9 @@ module create_tile(tile, wall_pattern, floor_pattern) {
                 }
                 // raised area
                 translate([0,0,TILE_HEIGHT]) for (i = range(hexes)) {
-                    translate(hex_center(hexes, i)) beveled_hexagon_prism(hex_size, height=HEXAGON_BEVEL_DEPTH);
+                    if (!is_elevated(tile, i)) {
+                        translate(hex_center(hexes, i)) beveled_hexagon_prism(hex_size, height=HEXAGON_BEVEL_DEPTH);
+                    }
                 }
                 // debug id
                 translate([0,0,TILE_HEIGHT]) for (i = range(hexes)) {
@@ -341,9 +352,6 @@ module create_tile(tile, wall_pattern, floor_pattern) {
 
                 // elevations
                 translate([0,0,TILE_HEIGHT]) for (e = tile("elevations")) {
-                    echo(vertices=tile_vertices(tile));
-                    echo(elevation=e(list=true));
-
                     raise_elevation(tile_vertices(tile), e);
                 }
 
@@ -364,10 +372,9 @@ module create_tile(tile, wall_pattern, floor_pattern) {
         // socket
         for (i = range(hexes)) {
             translate(concat(hex_center(hexes, i), [WALL_THICKNESS])) {
-                cylinder(r=SOCKET_RADIUS, h=TILE_HEIGHT*10, $fn=12);
+                rotate([0,0,360/24]) cylinder(r=SOCKET_RADIUS, h=TILE_HEIGHT*10, $fn=12);
             }
         }
-
 
         // bottom outer bevel
         bottom_bevel_cutter(bevel=tile_bevel) offset(delta=-SEPARATION/2-TOLERANCE/2) tile_shape(tile);

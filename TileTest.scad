@@ -98,18 +98,5 @@ module test_elevations() {
 module test_all() {
     translate([75,0,0]) test_elevations();
 }
- module test_in_list() {
-    list = [0];
-    a = 0;
-    i = index_of(list, a);
-    u = is_undef(index_of(list, a));
-    il = !is_undef(index_of(list, a));
-    echo(list=list, a=a, index=i, is_undef=u, not_is_undef=il);
-    echo(in_list=in_list(list, a), index_of=index_of([0],0), is_undef=is_undef(index_of([0],0)));
-   // assert(in_list([0], 0), "singleton list contains item");
-    assert(!in_list([], 0), "empty list does not contain item");
-    assert(!in_list([1,2], 0), "list without item does not contain item");
-}
 
-test_in_list();
-//test_all();
+test_all();
